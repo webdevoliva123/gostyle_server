@@ -12,7 +12,7 @@ require('dotenv').config();
 
 // backend will run only given url
 const corsOption = {
-    origin : ["http://localhost:3000","http://192.168.0.113:3000",],
+    origin : ["http://localhost:3000","http://192.168.0.113:3000","https://arena-clothing-store.netlify.app",],
     useSuccessStatus : 200,
 }
 
