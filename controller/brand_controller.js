@@ -2,7 +2,7 @@ const Brand = require('../model/Brand')
 const validate_email = require('validate-email');
 const validatepassword = require('../utils/validatepassword');
 const errsendres = require('../utils/errsendres');
-const { encrypt_password, genrate_token, decrypt_password, verify_token } = require('../utils/token-bcrypt');
+const {  genrate_token , verify_token } = require('../utils/token-bcrypt');
 const Products = require('../model/Products');
 const { product_category_options, for_which_coustomer_options } = require('../utils/prdoucts_options');
 
@@ -41,7 +41,7 @@ const create_brand_account = async (req,res) => {
         const brand = await Brand.create({
             brand_name,
             work_email,
-            password : await encrypt_password(password)
+            password : await password
         })
 
         const options = {
@@ -105,9 +105,7 @@ const login_brand = async (req,res) => {
             return errsendres(res, 500, "Invalid work email or password.")
         }
 
-        const cpassword = await decrypt_password(password,brand.password)
-
-        if(!cpassword){
+        if(password !== brand.password){
             return errsendres(res, 500, "Invalid work email or password.")
         }
 
@@ -409,7 +407,7 @@ const reset_password_brand = async (req, res) => {
         const findbrand = await Brand.findById(vtoken.brandId);
 
         if(findbrand){
-            const updatedbrand = await findbrand.updateOne({password : await encrypt_password(newpassword)})
+            const updatedbrand = await findbrand.updateOne({password : newpassword})
 
             if(updatedbrand){
                 return res.status(200).json({
@@ -444,13 +442,12 @@ const brand_change_password = async (req,res) => {
         const brand = await Brand.findById(brandId);
 
         if(brand){
-            const cpassword = await decrypt_password(oldpassword,brand.password)
 
-            if(!cpassword){
+            if(oldpassword !== brand.password){
                 return  errsendres(res,500,'You have enter wrong old password.')
             }
 
-            const updatedbrand = await brand.updateOne({password : await encrypt_password(newpassword)})
+            const updatedbrand = await brand.updateOne({password : newpassword})
 
             if(updatedbrand){
                 return res.status(200).json({

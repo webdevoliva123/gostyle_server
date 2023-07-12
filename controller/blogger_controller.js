@@ -2,7 +2,7 @@ const Blogger = require('../model/Blogger')
 const validate_email = require('validate-email');
 const validatepassword = require('../utils/validatepassword');
 const errsendres = require('../utils/errsendres');
-const { encrypt_password, genrate_token, decrypt_password, verify_token } = require('../utils/token-bcrypt');
+const {  genrate_token, verify_token } = require('../utils/token-bcrypt');
 const Magazine = require('../model/magazine');
 
 const register_as_blogger = async (req,res) => {
@@ -47,7 +47,7 @@ const register_as_blogger = async (req,res) => {
             firstname,
             lastname,
             email,
-            password : await encrypt_password(password),
+            password : password,
         })
 
         const options = {
@@ -97,9 +97,8 @@ const login_blogger = async (req,res) => {
             return errsendres(res,500,'Invalid username or password.')
         }
 
-        const dpassword = await decrypt_password(password,blogger.password);
 
-        if(!dpassword){
+        if(password !== blogger.password){
             return errsendres(res,500,'Invalid username or password.')
         }
 
@@ -234,7 +233,7 @@ const blogger_reset_password = async (req,res) => {
             return errsendres(res,500,vpassword.validationMessage);
         }
 
-        const blogger = await Blogger.findByIdAndUpdate(bloggerId,{password : await encrypt_password(password)})
+        const blogger = await Blogger.findByIdAndUpdate(bloggerId,{password :password})
 
         if(blogger){
             return res.status(200).json({
@@ -327,14 +326,12 @@ const blogger_change_password = async (req, res) => {
             return errsendres(res,500,vpassword.validationMessage);
         }
 
-        const dpassword = await decrypt_password(oldpassword,findblogger.password);
-
-        if(!dpassword){
+        if(oldpassword !== findblogger.password){
             return errsendres(res,500,'Please, Enter your correct old password')
         }
 
         const blogger = await Blogger.findByIdAndUpdate(bloggerId,{
-            password : await encrypt_password(newpassword)
+            password : newpassword
         })
 
         if(blogger){

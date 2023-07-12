@@ -2,7 +2,7 @@ const User = require('../model/User');
 const validate_email = require('validate-email');
 const validatepassword = require('../utils/validatepassword');
 const errsendres = require('../utils/errsendres');
-const { encrypt_password, genrate_token, decrypt_password, verify_token } = require('../utils/token-bcrypt');
+const { genrate_token, verify_token } = require('../utils/token-bcrypt');
 const Products = require('../model/Products');
 const { sendmail } = require('../utils/sendmail');
 
@@ -49,7 +49,7 @@ const register_as_customer = async (req,res) => {
             firstname,
             lastname,
             email,
-            password : await encrypt_password(password)
+            password : password
         })
 
         const token = await genrate_token({userId : user._id.toString()},'24h');
@@ -91,9 +91,7 @@ const login_user = async (req,res) => {
             return errsendres(res,500,'Invalid username or password.')
         }
 
-        const dpassword = await decrypt_password(password,user.password);
-
-        if(!dpassword){
+        if(password !== user.password){
             return errsendres(res,500,'Invalid username or password.')
         }
 
@@ -236,7 +234,7 @@ const resetpassword = async (req,res) => {
             return errsendres(res,500,vpassword.validationMessage);
         }
 
-        const user = await User.findByIdAndUpdate(userId,{password : await encrypt_password(password)})
+        const user = await User.findByIdAndUpdate(userId,{password : password})
 
         if(user){
             return res.status(200).json({
@@ -319,14 +317,12 @@ const changepassword = async (req, res) => {
             return errsendres(res,500,vpassword.validationMessage);
         }
 
-        const dpassword = await decrypt_password(oldpassword,finduser.password);
-
-        if(!dpassword){
+        if(oldpassword !== finduser.password){
             return errsendres(res,500,'Please, Enter your correct old password')
         }
 
         const user = await User.findByIdAndUpdate(user_data?._id,{
-            password : await encrypt_password(newpassword)
+            password : newpassword
         })
 
         if(user){
